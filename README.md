@@ -1,39 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Past Question Platform
 
-## Getting Started
+A modern web platform for Yabatech students to access, browse, and download past examination questions across all departments and schools.
 
-First, run the development server:
+## 🎯 Features
+
+- **Comprehensive Archive** - Browse thousands of past questions organized by school, department, level, and session
+- **Smart Search & Filters** - Find specific questions quickly with advanced filtering
+- **Download Tracking** - Monitor question popularity and your download history
+- **Personal Collections** - Save and bookmark questions for quick access
+- **Admin Dashboard** - Upload and manage past questions
+- **Secure Authentication** - Role-based access control for students and administrators
+- **Mobile Responsive** - Seamless experience across all devices
+- **Dark Mode** - Eye-friendly interface for late-night study sessions
+
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
+- **UI Components**: Shadcn UI, Framer Motion
+- **Deployment**: Vercel
+
+## 📋 Prerequisites
+
+- Node.js 18+ and npm
+- Supabase account
+- Git
+
+## 🛠️ Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/digitalpast.git
+   cd digitalpast
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   
+   Create a `.env.local` file in the root directory:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Set up Supabase database**
+   
+   Run the migration scripts in your Supabase SQL Editor:
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/002_seed_data.sql`
+
+5. **Create storage bucket**
+   
+   In Supabase dashboard:
+   - Create a public bucket named `questions`
+   - Configure storage policies (see `supabase/README.md`)
+
+6. **Run development server**
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000)
+
+## 📚 Documentation
+
+- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to Vercel
+- **[Technical Documentation](technical.md)** - Architecture and implementation details
+- **[Setup Guide](supabase/README.md)** - Database setup instructions
+- **[Walkthrough](walkthrough.md)** - Feature implementation guide
+
+## 🔑 Creating an Admin User
+
+1. Sign up through the app at `/signup`
+2. In Supabase dashboard, go to Authentication → Users
+3. Copy your user ID
+4. Run in SQL Editor:
+   ```sql
+   UPDATE users SET role = 'admin' WHERE id = 'your-user-id';
+   ```
+
+## 📱 Key Pages
+
+- `/` - Landing page
+- `/dashboard` - Student dashboard
+- `/browse` - Browse and filter questions
+- `/saved` - Saved questions
+- `/history` - Download history
+- `/admin/upload` - Admin upload page (admin only)
+
+## 🧪 Testing
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Run build to check for errors
+npm run build
+
+# Start production server
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Quick deploy to Vercel:
+```bash
+vercel --prod
+```
 
-## Learn More
+## 🤝 Contributing
 
-To learn more about Next.js, take a look at the following resources:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project is licensed under the MIT License.
 
-## Deploy on Vercel
+## 👥 Authors
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Your Name** - Initial work
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🙏 Acknowledgments
 
-## Deployment Status
-Deployment verified.
+- Yabatech for the inspiration
+- Supabase for the amazing backend platform
+- Vercel for seamless deployment
+
+## 📞 Support
+
+For support, email support@digitalpast.com or open an issue in the repository.
+
+---
+
+**Built with ❤️ for Yabatech students**

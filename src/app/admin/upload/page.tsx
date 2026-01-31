@@ -47,6 +47,19 @@ export default function AdminUploadPage() {
                 return;
             }
 
+            // Check if user has admin role
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', authUser.id)
+                .single();
+
+            if (userError || !userData || userData.role !== 'admin') {
+                alert('Access denied. Only administrators can upload questions.');
+                router.push('/dashboard');
+                return;
+            }
+
             const { data: schoolsData } = await supabase.from("schools").select("*").order("name");
             const { data: depsData } = await supabase.from("departments").select("*").order("name");
             setSchools(schoolsData || []);

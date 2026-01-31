@@ -42,13 +42,35 @@ function BrowseContent() {
     const [selectedQuestion, setSelectedQuestion] = useState<PastQuestion | null>(null);
     const [modalLoading, setModalLoading] = useState(false);
 
+    // Save/Download state
+    const [savedQuestions, setSavedQuestions] = useState<Set<string>>(new Set());
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+    const [savingId, setSavingId] = useState<string | null>(null);
+
     const filters = {
         levels: ["ND 1", "ND 2", "HND 1", "HND 2"],
     };
 
+    const [sortBy, setSortBy] = useState<"newest" | "popular">("newest");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [selectedLevel, selectedDepartment, selectedSession]);
+        fetchSavedQuestions();
+    }, [selectedLevel, selectedDepartment, selectedSession, selectedSchool, sortBy, debouncedSearch]);
+
+    // Fetch saved questions on mount
+    useEffect(() => {
+        fetchSavedQuestions();
+    }, []);
 
     // Handle modal from query param
     useEffect(() => {
@@ -66,40 +88,51 @@ function BrowseContent() {
             setLoading(true);
             setError(null);
 
-            // Fetch schools
-            const { data: schoolsData, error: schoolsError } = await supabase
-                .from('schools')
-                .select('*')
-                .order('name');
+            // Fetch schools if not loaded
+            if (schools.length === 0) {
+                const { data: schoolsData } = await supabase
+                    .from('schools')
+                    .select('*')
+                    .order('name');
+                setSchools(schoolsData || []);
+            }
 
-            if (schoolsError) throw schoolsError;
-            setSchools(schoolsData || []);
-
-            // Fetch departments
-            const { data: depsData, error: depsError } = await supabase
+            // Fetch departments if not loaded or if school changed
+            const { data: depsData } = await supabase
                 .from('departments')
                 .select('*')
                 .order('name');
-
-            if (depsError) throw depsError;
             setDepartments(depsData || []);
 
-            // Fetch questions with filters
+            // Build dynamic query
             let query = supabase
                 .from('past_questions')
-                .select('*')
-                .order('created_at', { ascending: false });
+                .select('*');
 
-            if (selectedLevel) {
-                query = query.eq('level', selectedLevel);
-            }
-
+            // Apply Filters
+            if (selectedLevel) query = query.eq('level', selectedLevel);
             if (selectedDepartment) {
                 query = query.eq('department_id', selectedDepartment);
+            } else if (selectedSchool) {
+                const schoolDepts = (depsData || departments)
+                    .filter(d => d.school_id === selectedSchool)
+                    .map(d => d.id);
+                if (schoolDepts.length > 0) {
+                    query = query.in('department_id', schoolDepts);
+                }
+            }
+            if (selectedSession) query = query.eq('session', selectedSession);
+
+            // Search Query
+            if (debouncedSearch) {
+                query = query.or(`course_code.ilike.%${debouncedSearch}%,course_title.ilike.%${debouncedSearch}%`);
             }
 
-            if (selectedSession) {
-                query = query.eq('session', selectedSession);
+            // Apply Sorting
+            if (sortBy === "newest") {
+                query = query.order('created_at', { ascending: false });
+            } else {
+                query = query.order('download_count', { ascending: false });
             }
 
             const { data: questionsData, error: questionsError } = await query;
@@ -145,15 +178,117 @@ function BrowseContent() {
         router.push(`/browse?${params.toString()}`, { scroll: false });
     };
 
-    const filteredQuestions = questions.filter(q =>
-        searchQuery === "" ||
-        q.course_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.course_title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
     const formatFileSize = (bytes: number | null) => {
         if (!bytes) return 'N/A';
         return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    };
+
+    // Fetch user's saved questions
+    async function fetchSavedQuestions() {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data } = await supabase
+                .from('saved_questions')
+                .select('question_id')
+                .eq('user_id', user.id);
+
+            if (data) {
+                setSavedQuestions(new Set(data.map(sq => sq.question_id)));
+            }
+        } catch (error) {
+            console.error('Error fetching saved questions:', error);
+        }
+    }
+
+    // Handle download with tracking
+    const handleDownload = async (questionId: string, fileUrl: string) => {
+        if (!fileUrl) return;
+
+        setDownloadingId(questionId);
+
+        try {
+            // Increment download count
+            const { data: currentQuestion } = await supabase
+                .from('past_questions')
+                .select('download_count')
+                .eq('id', questionId)
+                .single();
+
+            if (currentQuestion) {
+                await supabase
+                    .from('past_questions')
+                    .update({ download_count: (currentQuestion.download_count || 0) + 1 })
+                    .eq('id', questionId);
+            }
+
+            // Track in history if user is authenticated
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase
+                    .from('download_history')
+                    .insert({
+                        user_id: user.id,
+                        question_id: questionId
+                    });
+            }
+
+            // Trigger download
+            window.open(fileUrl, '_blank');
+
+            // Refresh questions to show updated count
+            fetchData();
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Failed to download. Please try again.');
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    // Handle save/unsave question
+    const handleSaveToggle = async (questionId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
+        setSavingId(questionId);
+        const isSaved = savedQuestions.has(questionId);
+
+        try {
+            if (isSaved) {
+                // Unsave
+                await supabase
+                    .from('saved_questions')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('question_id', questionId);
+
+                setSavedQuestions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(questionId);
+                    return newSet;
+                });
+            } else {
+                // Save
+                await supabase
+                    .from('saved_questions')
+                    .insert({
+                        user_id: user.id,
+                        question_id: questionId
+                    });
+
+                setSavedQuestions(prev => new Set(prev).add(questionId));
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            alert('Failed to save. Please try again.');
+        } finally {
+            setSavingId(null);
+        }
     };
 
     return (
@@ -290,12 +425,28 @@ function BrowseContent() {
                     <div>
                         <h1 className="text-3xl font-bold mb-2">Past Questions</h1>
                         <p className="text-muted-foreground text-sm">
-                            {loading ? 'Loading...' : `Showing ${filteredQuestions.length} past questions found`}
+                            {loading ? 'Loading...' : `Showing ${questions.length} past questions found`}
                         </p>
                     </div>
                     <div className="flex bg-muted border border-border rounded-2xl p-1">
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-900/20 transition-all">Newest First</button>
-                        <button className="px-4 py-2 text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all">Most Popular</button>
+                        <button
+                            onClick={() => setSortBy("newest")}
+                            className={cn(
+                                "px-4 py-2 rounded-xl text-xs font-bold transition-all",
+                                sortBy === "newest" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            Newest First
+                        </button>
+                        <button
+                            onClick={() => setSortBy("popular")}
+                            className={cn(
+                                "px-4 py-2 rounded-xl text-xs font-bold transition-all",
+                                sortBy === "popular" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            Most Popular
+                        </button>
                     </div>
                 </div>
 
@@ -310,8 +461,8 @@ function BrowseContent() {
                             <p className="text-red-500">{error}</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {filteredQuestions.map((q) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                            {questions.map((q) => (
                                 <div key={q.id} className="bg-card border border-border rounded-[2rem] p-8 group hover:bg-muted transition-all relative">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="flex gap-2">
@@ -322,8 +473,17 @@ function BrowseContent() {
                                                 {q.question_type}
                                             </span>
                                         </div>
-                                        <button className="text-muted-foreground hover:text-blue-500 transition-colors">
-                                            <BookOpen size={18} />
+                                        <button
+                                            onClick={() => handleSaveToggle(q.id)}
+                                            disabled={savingId === q.id}
+                                            className={cn(
+                                                "transition-colors",
+                                                savedQuestions.has(q.id)
+                                                    ? "text-blue-500"
+                                                    : "text-muted-foreground hover:text-blue-500"
+                                            )}
+                                        >
+                                            <BookOpen size={18} fill={savedQuestions.has(q.id) ? "currentColor" : "none"} />
                                         </button>
                                     </div>
 
@@ -361,7 +521,7 @@ function BrowseContent() {
                     )}
 
                     {/* Pagination */}
-                    {!loading && !error && filteredQuestions.length > 0 && (
+                    {!loading && !error && questions.length > 0 && (
                         <div className="mt-12 flex justify-center items-center gap-2">
                             {[1].map((page, i) => (
                                 <button
@@ -417,8 +577,18 @@ function BrowseContent() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <button className="p-3 bg-muted border border-border rounded-xl text-muted-foreground hover:text-foreground transition-all">
-                                            <Save size={20} />
+                                        <button
+                                            onClick={() => selectedQuestion && handleSaveToggle(selectedQuestion.id)}
+                                            disabled={!selectedQuestion || savingId === selectedQuestion?.id}
+                                            className={cn(
+                                                "p-3 bg-muted border border-border rounded-xl transition-all",
+                                                selectedQuestion && savedQuestions.has(selectedQuestion.id)
+                                                    ? "text-blue-500 border-blue-500"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                            title={selectedQuestion && savedQuestions.has(selectedQuestion.id) ? "Unsave" : "Save"}
+                                        >
+                                            <Save size={20} fill={selectedQuestion && savedQuestions.has(selectedQuestion.id) ? "currentColor" : "none"} />
                                         </button>
                                         <button className="p-3 bg-muted border border-border rounded-xl text-muted-foreground hover:text-foreground transition-all">
                                             <Share2 size={20} />
@@ -454,14 +624,23 @@ function BrowseContent() {
                                     <div className="w-80 border-l border-border p-8 space-y-8 bg-card overflow-y-auto">
                                         <div className="space-y-4">
                                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Actions</h4>
-                                            <a
-                                                href={selectedQuestion.file_url || "#"}
-                                                download
-                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-3"
+                                            <button
+                                                onClick={() => selectedQuestion && handleDownload(selectedQuestion.id, selectedQuestion.file_url || '')}
+                                                disabled={!selectedQuestion?.file_url || downloadingId === selectedQuestion?.id}
+                                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-3"
                                             >
-                                                <Download size={20} />
-                                                Download PDF
-                                            </a>
+                                                {downloadingId === selectedQuestion?.id ? (
+                                                    <>
+                                                        <Loader2 className="animate-spin" size={20} />
+                                                        Downloading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download size={20} />
+                                                        Download PDF
+                                                    </>
+                                                )}
+                                            </button>
                                             <button className="w-full bg-muted border border-border hover:bg-muted/80 text-foreground py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-3">
                                                 <Maximize2 size={20} />
                                                 Open Fullscreen

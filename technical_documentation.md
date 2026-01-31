@@ -1,4 +1,4 @@
-# Technical Documentation: Digital Past Question Platform (YABATECH)
+# Technical Documentation: Yabatech Digital Past Question Platform
 
 This document contains detailed technical notes and design specifications for the Digital Past Question Platform. This content is structured to be used as input for an academic project report.
 
@@ -80,7 +80,10 @@ This document contains detailed technical notes and design specifications for th
 - Secure Admin login for document management.
 - Real-time search with visual feedback.
 - Portable Document Format (PDF) integration with embedded viewer.
-- Responsive design for smartphones and desktops.
+- **Smart UI Components**:
+    - **Dynamic Resizable Navbar**: A scroll-aware navigation component that transitions from full-width to a compact, blurred-glass floating bar.
+    - **WebGL Gradient Hero**: A high-performance background animation using custom shaders to create a fluid, academic aesthetic that adapts to light/dark themes.
+- Responsive design optimized for smartphones, tablets, and desktops using adaptive layouts.
 
 ### 3.3 Functional Requirements
 - **FR1**: System must allow admin to upload PDF files with metadata.
@@ -152,6 +155,8 @@ model PastQuestion {
 - **TypeScript**: Used for robust type-safety, reducing runtime errors in the academic material management.
 - **Next.js 16 (App Router)**: Selected for its high performance, easy deployment, and first-class SEO support for a public-facing academic platform.
 - **Tailwind CSS 4**: Effortless styling with a utility-first approach, ensuring the "modern/premium" aesthetic requested.
+- **Framer Motion**: Powering fluid UI transitions and the adaptive navbar state changes.
+- **Custom WebGL/Canvas**: Used for the Hero section to ensure high-performance animations without taxing the main thread.
 - **SQLite/PostgreSQL**: Reliable relational data storage for complex departmental structures.
 - **Prisma**: To abstract database queries into typed methods, speeding up development.
 
@@ -183,5 +188,25 @@ model PastQuestion {
 - Implementation of a global CDN (like Vercel Blob or Cloudinary) for faster PDF delivery.
 - Integration of an AI-based OCR (Optical Character Recognition) to make scanned older questions searchable.
 
-### 4.9 Conclusion (Technical Summary)
-The Digital Past Question Platform addresses a critical gap in YABATECH's academic ecosystem. By leveraging modern frameworks like Next.js and TypeScript, the system provides a scalable, secure, and visually pleasing solution that modernizes student study workflows and preserves historical academic data.
+---
+
+## Chapter Five: Future Development and Roadmap
+
+### 5.1 Payment Gateway Integration
+- **Monetization Strategy**: Transition from free access to a freemium model.
+- **Implementation**: Integration of **Paystack** or **Flutterwave** APIs to handle local Nigerian transactions.
+- **Features**: 
+    - One-time payment for lifetime access to specific levels.
+    - Subscription-based access for full departmental archives.
+    - Secure receipt generation and automated access unlocking via webhooks.
+
+### 5.2 Student Dashboard & Personalization
+- Implementation of "Saved Questions" and "Study Progress" tracking.
+- Personalized AI recommendations based on the student's department and current academic level.
+
+### 5.3 Mobile Application
+- Development of a Flutter or React Native mobile app for offline access to encrypted PDF materials.
+
+## Chapter Six: Conclusion (Technical Summary)
+
+The Yabatech Digital Past Question Platform addresses a critical gap in the college's academic ecosystem. By leveraging modern frameworks like Next.js, Framer Motion, and custom WebGL implementations, the system provides a scalable, secure, and visually pleasing solution that modernizes student study workflows and preserves historical academic data for future generations of students.
