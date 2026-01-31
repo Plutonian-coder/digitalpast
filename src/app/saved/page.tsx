@@ -54,18 +54,20 @@ export default function SavedPage() {
     }
 
     async function handleRemove(questionId: string) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        setRemovingId(questionId);
-
         try {
-            await supabase
+            setRemovingId(questionId);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { error } = await supabase
                 .from('saved_questions')
                 .delete()
                 .eq('user_id', user.id)
                 .eq('question_id', questionId);
 
+            if (error) throw error;
+
+            // Remove from local state
             setSavedQuestions(prev => prev.filter(q => q.id !== questionId));
         } catch (error) {
             console.error('Error removing saved question:', error);
@@ -75,119 +77,105 @@ export default function SavedPage() {
         }
     }
 
-    const formatFileSize = (bytes: number | null) => {
-        if (!bytes) return 'N/A';
-        return (bytes / 1024 / 1024).toFixed(2) + ' MB';
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    };
-
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex items-center justify-center min-h-screen">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-8 max-w-[1400px] mx-auto">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Saved Resources</h1>
-                <p className="text-muted-foreground mt-2">
-                    Your collection of saved past questions and materials.
+        <div className="w-full min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-10 overflow-x-hidden">
+            {/* Header */}
+            <header className="mb-6 sm:mb-8 lg:mb-12">
+                <div className="flex items-center gap-3 mb-2 sm:mb-3">
+                    <Bookmark className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Saved Questions</h1>
+                </div>
+                <p className="text-muted-foreground text-xs sm:text-sm lg:text-base">
+                    {savedQuestions.length} {savedQuestions.length === 1 ? 'question' : 'questions'} saved for later
                 </p>
-            </div>
+            </header>
 
+            {/* Saved Questions Grid */}
             {savedQuestions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-3xl border border-dashed border-border/50">
-                    <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center mb-4">
-                        <Bookmark className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <h2 className="text-xl font-semibold italic">No saved items yet</h2>
-                    <p className="text-muted-foreground max-w-sm text-center mt-2">
-                        Items you save while browsing the archive will appear here for quick access.
+                <div className="flex flex-col items-center justify-center py-16 sm:py-20 bg-muted/20 rounded-2xl sm:rounded-3xl border border-dashed border-border/50">
+                    <Bookmark className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mb-4" />
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2">No Saved Questions</h3>
+                    <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base px-4">
+                        Questions you bookmark will appear here for quick access.
                     </p>
                     <Link
                         href="/browse"
-                        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all"
+                        className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold transition-colors text-sm sm:text-base"
                     >
                         Browse Questions
                     </Link>
                 </div>
             ) : (
-                <>
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">
-                            {savedQuestions.length} saved {savedQuestions.length === 1 ? 'question' : 'questions'}
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {savedQuestions.map((q) => (
-                            <div key={q.id} className="bg-card border border-border rounded-[2rem] p-8 group hover:bg-muted transition-all relative">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="flex gap-2">
-                                        <span className="px-3 py-1 bg-blue-500 text-[10px] font-bold rounded-lg text-white">
-                                            {q.course_code}
-                                        </span>
-                                        <span className="px-3 py-1 bg-muted border border-border text-[10px] font-bold rounded-lg text-muted-foreground uppercase">
-                                            {q.question_type}
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={() => handleRemove(q.id)}
-                                        disabled={removingId === q.id}
-                                        className="text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
-                                        title="Remove from saved"
-                                    >
-                                        {removingId === q.id ? (
-                                            <Loader2 size={18} className="animate-spin" />
-                                        ) : (
-                                            <Trash2 size={18} />
-                                        )}
-                                    </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {savedQuestions.map((question) => (
+                        <div
+                            key={question.id}
+                            className="bg-card border border-border rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 lg:p-8 hover:bg-muted transition-all relative group"
+                        >
+                            {/* Header */}
+                            <div className="flex justify-between items-start mb-4 sm:mb-6">
+                                <div className="flex gap-2 flex-wrap">
+                                    <span className="px-2 sm:px-3 py-1 bg-blue-500 text-[10px] font-bold rounded-lg text-white">
+                                        {question.course_code}
+                                    </span>
+                                    <span className="px-2 sm:px-3 py-1 bg-muted border border-border text-[10px] font-bold rounded-lg text-muted-foreground uppercase">
+                                        {question.question_type}
+                                    </span>
                                 </div>
+                                <button
+                                    onClick={() => handleRemove(question.id)}
+                                    disabled={removingId === question.id}
+                                    className="text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
+                                    aria-label="Remove from saved"
+                                >
+                                    {removingId === question.id ? (
+                                        <Loader2 size={18} className="animate-spin" />
+                                    ) : (
+                                        <Trash2 size={18} />
+                                    )}
+                                </button>
+                            </div>
 
-                                <h3 className="text-xl font-bold mb-6 group-hover:text-blue-500 transition-colors">{q.course_title}</h3>
+                            {/* Title */}
+                            <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 group-hover:text-blue-500 transition-colors">
+                                {question.course_title}
+                            </h3>
 
-                                <div className="space-y-3 mb-8">
-                                    <div className="flex items-center gap-3 text-muted-foreground">
-                                        <Calendar size={14} className="text-blue-500" />
-                                        <span className="text-xs font-medium">{q.session} Session</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-muted-foreground">
-                                        <Clock size={14} className="text-blue-500" />
-                                        <span className="text-xs font-medium">{q.semester}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-muted-foreground">
-                                        <Bookmark size={14} className="text-green-500" />
-                                        <span className="text-xs font-medium">Saved {formatDate(q.saved_at)}</span>
-                                    </div>
+                            {/* Meta Info */}
+                            <div className="space-y-3 mb-6 sm:mb-8">
+                                <div className="flex items-center gap-3 text-muted-foreground">
+                                    <Calendar size={14} className="text-blue-500" />
+                                    <span className="text-xs font-medium">{question.session} Session</span>
                                 </div>
-
-                                <div className="pt-6 border-t border-border flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <div className="p-1.5 bg-red-500/10 rounded text-red-500">
-                                            <Download size={12} />
-                                        </div>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">PDF • {formatFileSize(q.file_size)}</span>
-                                    </div>
-                                    <Link
-                                        href={`/browse?question=${q.id}`}
-                                        className="flex items-center gap-2 text-blue-500 text-xs font-bold hover:underline"
-                                    >
-                                        View Details
-                                        <Eye size={14} />
-                                    </Link>
+                                <div className="flex items-center gap-3 text-muted-foreground">
+                                    <Clock size={14} className="text-blue-500" />
+                                    <span className="text-xs font-medium">{question.semester}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-muted-foreground">
+                                    <Download size={14} className="text-blue-500" />
+                                    <span className="text-xs font-medium">{question.download_count} downloads</span>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </>
+
+                            {/* Action Button */}
+                            <Link
+                                href={`/question/${question.id}`}
+                                className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold transition-all text-sm"
+                            >
+                                <Eye size={16} />
+                                View Question
+                            </Link>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );

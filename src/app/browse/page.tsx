@@ -47,6 +47,9 @@ function BrowseContent() {
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const [savingId, setSavingId] = useState<string | null>(null);
 
+    // Mobile filter state
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+
     const filters = {
         levels: ["ND 1", "ND 2", "HND 1", "HND 2"],
     };
@@ -292,28 +295,59 @@ function BrowseContent() {
     };
 
     return (
-        <div className="flex h-screen bg-background overflow-hidden text-foreground">
+        <div className="flex flex-col lg:flex-row min-h-screen bg-background text-foreground w-full">
+            {/* Mobile Filter Toggle Button */}
+            <button
+                onClick={() => setShowMobileFilters(true)}
+                className="lg:hidden fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-4 rounded-full shadow-2xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
+                aria-label="Open filters"
+            >
+                <Filter size={24} />
+            </button>
+
+            {/* Mobile Overlay */}
+            {showMobileFilters && (
+                <div
+                    className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+                    onClick={() => setShowMobileFilters(false)}
+                    aria-hidden="true"
+                />
+            )}
+
             {/* Filter Sidebar */}
-            <aside className="w-80 border-r border-border flex flex-col bg-card/50 overflow-y-auto">
-                <div className="p-8 border-b border-border flex justify-between items-center">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
+            <aside className={cn(
+                "w-full sm:w-80 border-r border-border flex flex-col bg-card overflow-y-auto transition-transform duration-300 ease-in-out",
+                "fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto h-full lg:h-auto",
+                showMobileFilters ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+            )}>
+                <div className="p-6 lg:p-8 border-b border-border flex justify-between items-center sticky top-0 bg-card z-10">
+                    <h2 className="text-lg lg:text-xl font-bold flex items-center gap-2">
                         <Filter className="w-5 h-5 text-blue-500" />
                         Filter Results
                     </h2>
-                    <button
-                        onClick={() => {
-                            setSelectedSchool("");
-                            setSelectedDepartment("");
-                            setSelectedSession("");
-                            setSelectedLevel("");
-                        }}
-                        className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                        Reset
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => {
+                                setSelectedSchool("");
+                                setSelectedDepartment("");
+                                setSelectedSession("");
+                                setSelectedLevel("");
+                            }}
+                            className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            Reset
+                        </button>
+                        <button
+                            onClick={() => setShowMobileFilters(false)}
+                            className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors"
+                            aria-label="Close filters"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="p-8 space-y-10">
+                <div className="p-6 lg:p-8 space-y-8 lg:space-y-10">
                     {/* School Filter */}
                     <div className="space-y-4">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">School</label>
@@ -401,10 +435,10 @@ function BrowseContent() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col bg-background">
+            <main className="flex-1 flex flex-col bg-background w-full overflow-x-hidden">
                 {/* Header */}
-                <header className="h-20 border-b border-border flex items-center justify-between px-10 bg-background/50 backdrop-blur-xl">
-                    <div className="relative w-96 group">
+                <header className="min-h-[80px] border-b border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 sm:px-6 lg:px-10 py-4 sm:py-0 bg-background/50 backdrop-blur-xl gap-4 sm:gap-0">
+                    <div className="relative w-full sm:w-96 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type="text"
@@ -414,17 +448,17 @@ function BrowseContent() {
                             className="w-full bg-muted/50 border border-border rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium text-foreground"
                         />
                     </div>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 lg:gap-6">
                         <span className="text-sm font-medium text-muted-foreground">{selectedLevel || "All Levels"}</span>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 ring-2 ring-border" />
+                        <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 ring-2 ring-border" />
                     </div>
                 </header>
 
                 {/* Results Info */}
-                <div className="p-10 pb-0 flex justify-between items-end">
+                <div className="p-4 sm:p-6 lg:p-10 pb-0 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2">Past Questions</h1>
-                        <p className="text-muted-foreground text-sm">
+                        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Past Questions</h1>
+                        <p className="text-muted-foreground text-xs sm:text-sm">
                             {loading ? 'Loading...' : `Showing ${questions.length} past questions found`}
                         </p>
                     </div>
@@ -451,7 +485,7 @@ function BrowseContent() {
                 </div>
 
                 {/* Results Grid */}
-                <div className="flex-1 p-10 overflow-y-auto">
+                <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
                             <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
