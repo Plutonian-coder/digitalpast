@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { WavyBackground } from "@/components/ui/wavy-background";
-import { auth } from "@/lib/supabase";
+import { auth, supabase } from "@/lib/supabase";
 import { AuthCard } from "@/components/ui/clean-minimal-sign-in";
 
 export default function LoginPage() {
@@ -35,7 +35,33 @@ export default function LoginPage() {
             );
 
             if (signInError) throw signInError;
-            if (data.user) router.push('/dashboard');
+
+            if (data.user) {
+                // Check if user profile exists in database
+                const { data: existingProfile } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', data.user.id)
+                    .single();
+
+                // If no profile exists, create one
+                if (!existingProfile) {
+                    const fullName = data.user.user_metadata?.full_name ||
+                        data.user.email?.split('@')[0] ||
+                        'User';
+
+                    await supabase
+                        .from('users')
+                        .insert({
+                            id: data.user.id,
+                            email: data.user.email,
+                            full_name: fullName,
+                            role: 'student'
+                        });
+                }
+
+                router.push('/dashboard');
+            }
         } catch (err: any) {
             setError(err.message || 'Failed to sign in. Please check your credentials.');
         } finally {

@@ -32,10 +32,22 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                // 1. Get User Info
+                // 1. Get User Info from database
                 const { user } = await auth.getCurrentUser();
-                if (user?.user_metadata?.full_name) {
-                    setUserName(user.user_metadata.full_name.split(' ')[0]);
+                if (user) {
+                    // Fetch user profile from users table
+                    const { data: userProfile } = await supabase
+                        .from('users')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (userProfile?.full_name) {
+                        setUserName(userProfile.full_name.split(' ')[0]);
+                    } else if (user.user_metadata?.full_name) {
+                        // Fallback to metadata if database profile doesn't exist
+                        setUserName(user.user_metadata.full_name.split(' ')[0]);
+                    }
                 }
 
                 // 2. Fetch Total Questions & Added This Week
