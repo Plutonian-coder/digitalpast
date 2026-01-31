@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     Search,
@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useSidebar } from "@/context/sidebar-context";
+import { auth } from "@/lib/supabase";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -28,7 +29,13 @@ const menuItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const { isCollapsed, toggleSidebar } = useSidebar();
+
+    const handleLogout = async () => {
+        await auth.signOut();
+        router.push('/login');
+    };
 
     return (
         <aside
@@ -121,10 +128,14 @@ export function Sidebar() {
                     <ThemeToggle className={isCollapsed ? "scale-75" : "scale-90"} />
                 </div>
 
-                <button className={cn(
-                    "w-full flex items-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all text-sm font-medium rounded-2xl",
-                    isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
-                )}>
+                <button
+                    onClick={handleLogout}
+                    className={cn(
+                        "w-full flex items-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all text-sm font-medium rounded-2xl",
+                        isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
+                    )}
+                    title={isCollapsed ? "Logout" : ""}
+                >
                     <LogOut className="w-5 h-5 shrink-0" />
                     {!isCollapsed && <span>Logout</span>}
                 </button>
