@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Department Selection - Past Questions Portal</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0D6EFD", // Bright blue from screenshot buttons
+              "primary-hover": "#0b5ed7",
+              "background-light": "#F8F9FA", // Light gray background
+              "background-dark": "#121212", // Dark mode background
+              "surface-light": "#FFFFFF",
+              "surface-dark": "#1E1E1E",
+              "border-light": "#E9ECEF",
+              "border-dark": "#333333",
+              "text-primary-light": "#212529",
+              "text-primary-dark": "#E0E0E0",
+              "text-secondary-light": "#6C757D",
+              "text-secondary-dark": "#A0A0A0",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+              sans: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+            },
+            boxShadow: {
+              'soft': '0 2px 8px rgba(0,0,0,0.04)',
+              'card': '0 1px 3px rgba(0,0,0,0.05)',
+            }
+          },
+        },
+      };
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-72 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex-shrink-0 overflow-y-auto hidden lg:flex flex-col">
+<div class="p-6 border-b border-border-light dark:border-border-dark flex items-center justify-between sticky top-0 bg-surface-light dark:bg-surface-dark z-10">
+<div class="flex items-center gap-2">
+<span class="material-icons-round text-primary">filter_alt</span>
+<h2 class="text-lg font-bold text-text-primary-light dark:text-text-primary-dark">Filter Results</h2>
+</div>
+<button class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark hover:text-primary transition-colors">Reset</button>
+</div>
+<div class="p-6 space-y-6 flex-1">
+<div class="space-y-2">
+<label class="text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">School</label>
+<div class="relative">
+<select class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 pl-3 pr-10 text-sm focus:ring-primary focus:border-primary text-text-primary-light dark:text-text-primary-dark appearance-none cursor-pointer">
+<option>School of Science</option>
+<option>School of Engineering</option>
+<option>School of Arts</option>
+<option>School of Management</option>
+</select>
+<span class="material-icons-round absolute right-3 top-2.5 text-text-secondary-light pointer-events-none text-sm">expand_more</span>
+</div>
+</div>
+<div class="space-y-2 opacity-50 pointer-events-none">
+<label class="text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">Department</label>
+<div class="relative">
+<select class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 pl-3 pr-10 text-sm text-text-secondary-light dark:text-text-secondary-dark appearance-none" disabled="">
+<option>All Departments</option>
+</select>
+<span class="material-icons-round absolute right-3 top-2.5 text-text-secondary-light pointer-events-none text-sm">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">Level</label>
+<div class="grid grid-cols-2 gap-3">
+<label class="cursor-pointer">
+<input class="peer sr-only" type="checkbox"/>
+<div class="py-2 px-3 text-xs text-center border border-border-light dark:border-border-dark rounded-lg text-text-secondary-light dark:text-text-secondary-dark peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all hover:bg-gray-50 dark:hover:bg-gray-800">ND 1</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" type="checkbox"/>
+<div class="py-2 px-3 text-xs text-center border border-border-light dark:border-border-dark rounded-lg text-text-secondary-light dark:text-text-secondary-dark peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all hover:bg-gray-50 dark:hover:bg-gray-800">ND 2</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" type="checkbox"/>
+<div class="py-2 px-3 text-xs text-center border border-border-light dark:border-border-dark rounded-lg text-text-secondary-light dark:text-text-secondary-dark peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all hover:bg-gray-50 dark:hover:bg-gray-800">HND 1</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" type="checkbox"/>
+<div class="py-2 px-3 text-xs text-center border border-border-light dark:border-border-dark rounded-lg text-text-secondary-light dark:text-text-secondary-dark peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all hover:bg-gray-50 dark:hover:bg-gray-800">HND 2</div>
+</label>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">Session Year</label>
+<div class="relative">
+<select class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 pl-3 pr-10 text-sm focus:ring-primary focus:border-primary text-text-primary-light dark:text-text-primary-dark appearance-none cursor-pointer">
+<option>All Years</option>
+<option>2023/2024</option>
+<option>2022/2023</option>
+</select>
+<span class="material-icons-round absolute right-3 top-2.5 text-text-secondary-light pointer-events-none text-sm">expand_more</span>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-border-light dark:border-border-dark sticky bottom-0 bg-surface-light dark:bg-surface-dark z-10">
+<button class="w-full bg-primary hover:bg-primary-hover text-white font-medium py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
+<span>Apply Filters</span>
+</button>
+</div>
+<div class="p-6 pt-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center font-bold text-xs">N</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+<header class="h-16 border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-20">
+<div class="flex-1 max-w-xl">
+<div class="relative">
+<span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-full text-sm focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary-light dark:text-text-primary-dark transition-shadow" placeholder="Search by course code, title..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark font-medium">
+<span>All Levels</span>
+</div>
+<button class="relative">
+<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 shadow-md"></div>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-surface-light dark:border-surface-dark rounded-full"></span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-6 lg:p-10 bg-background-light dark:bg-background-dark">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div>
+<nav class="flex items-center text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-icons-round text-base">school</span>
+                                Schools
+                            </a>
+<span class="mx-2 text-gray-400">/</span>
+<span class="font-medium text-text-primary-light dark:text-text-primary-dark">School of Science</span>
+</nav>
+<h1 class="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">Departments in School of Science</h1>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">Select a department to view available courses and past questions.</p>
+</div>
+<button class="inline-flex items-center px-4 py-2 border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark bg-surface-light dark:bg-surface-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+<span class="material-icons-round text-base mr-2">arrow_back</span>
+                        Back to Schools
+                    </button>
+</div>
+<div class="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl flex items-start gap-3">
+<span class="material-icons-round text-primary mt-0.5">info</span>
+<div>
+<h4 class="text-sm font-semibold text-primary dark:text-blue-400">Selection Required</h4>
+<p class="text-sm text-blue-700 dark:text-blue-300 mt-0.5">Please choose your department to filter the past questions specifically for your program.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">computer</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Computer Science</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">42 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">science</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Microbiology</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">36 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">biotech</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Biochemistry</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">28 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">analytics</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Statistics</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">31 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">blur_on</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Physics</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">24 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">science</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Chemistry</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">29 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 hover:border-primary dark:hover:border-primary hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">restaurant</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Food Technology</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">18 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<div class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 opacity-60 flex items-center justify-between relative overflow-hidden cursor-not-allowed">
+<div class="absolute inset-0 bg-gray-50/50 dark:bg-gray-900/50 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="bg-gray-800 text-white text-xs py-1 px-3 rounded-full">Coming Soon</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 flex items-center justify-center">
+<span class="material-icons-round">architecture</span>
+</div>
+<div>
+<h3 class="font-semibold text-text-primary-light dark:text-text-primary-dark text-base">Architecture</h3>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">0 Courses</p>
+</div>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-700">lock</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

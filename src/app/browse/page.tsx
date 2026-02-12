@@ -22,20 +22,42 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase, type PastQuestion, type Department, type School } from "@/lib/supabase";
+import { SelectSchoolState } from "./_components/SelectSchoolState";
+import { DepartmentList } from "./_components/DepartmentList";
+import { LevelList } from "./_components/LevelList";
+import { CourseList } from "./_components/CourseList";
+import { PastQuestionList } from "./_components/PastQuestionList";
+import { SearchResults } from "./_components/SearchResults";
+
 
 function BrowseContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [selectedLevel, setSelectedLevel] = useState<string>("");
-    const [questions, setQuestions] = useState<PastQuestion[]>([]);
-    const [schools, setSchools] = useState<School[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
+
+    // State for Drill-Down
+    type Step = 'initial' | 'departments' | 'levels' | 'courses' | 'questions';
+    const [step, setStep] = useState<Step>('initial');
+
+    // Selection State
     const [selectedSchool, setSelectedSchool] = useState<string>("");
     const [selectedDepartment, setSelectedDepartment] = useState<string>("");
+    const [selectedLevel, setSelectedLevel] = useState<string>("");
+    const [selectedCourse, setSelectedCourse] = useState<{ course_code: string, course_title: string } | null>(null);
     const [selectedSession, setSelectedSession] = useState<string>("");
+
+    // Data State
+    const [schools, setSchools] = useState<School[]>([]);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [courses, setCourses] = useState<{ course_code: string, course_title: string, file_count: number }[]>([]);
+    const [questions, setQuestions] = useState<PastQuestion[]>([]);
+
+    // UI State
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [searchResults, setSearchResults] = useState<PastQuestion[]>([]);
+    const [isFullScreen, setIsFullScreen] = useState(false);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,7 +77,6 @@ function BrowseContent() {
     };
 
     const [sortBy, setSortBy] = useState<"newest" | "popular">("newest");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     // Debounce search query
     useEffect(() => {
@@ -65,13 +86,16 @@ function BrowseContent() {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
+    // Search Effect
     useEffect(() => {
-        fetchData();
-        fetchSavedQuestions();
-    }, [selectedLevel, selectedDepartment, selectedSession, selectedSchool, sortBy, debouncedSearch]);
+        if (debouncedSearch) {
+            fetchSearchResults(debouncedSearch);
+        }
+    }, [debouncedSearch]);
 
-    // Fetch saved questions on mount
+    // Initial Data Fetch
     useEffect(() => {
+        fetchSchools();
         fetchSavedQuestions();
     }, []);
 
@@ -86,69 +110,184 @@ function BrowseContent() {
         }
     }, [searchParams]);
 
-    async function fetchData() {
+    // FETCHING FUNCTIONS
+
+    async function fetchSchools() {
         try {
-            setLoading(true);
-            setError(null);
+            const { data } = await supabase.from('schools').select('*').order('name');
+            setSchools(data || []);
+        } catch (err) {
+            console.error("Failed to fetch schools", err);
+        }
+    }
 
-            // Fetch schools if not loaded
-            if (schools.length === 0) {
-                const { data: schoolsData } = await supabase
-                    .from('schools')
-                    .select('*')
-                    .order('name');
-                setSchools(schoolsData || []);
-            }
-
-            // Fetch departments if not loaded or if school changed
-            const { data: depsData } = await supabase
+    async function fetchDepartments(schoolId: string) {
+        if (!schoolId) return;
+        setLoading(true);
+        try {
+            const { data } = await supabase
                 .from('departments')
                 .select('*')
+                .eq('school_id', schoolId)
                 .order('name');
-            setDepartments(depsData || []);
+            setDepartments(data || []);
+        } catch (err) {
+            console.error("Failed to fetch departments", err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
-            // Build dynamic query
+    async function fetchCourses(deptId: string, lvl: string) {
+        if (!deptId || !lvl) return;
+        setLoading(true);
+        try {
+            const { data } = await supabase
+                .from('past_questions')
+                .select('course_code, course_title')
+                .eq('department_id', deptId)
+                .eq('level', lvl);
+
+            if (data) {
+                // Aggregate counts
+                const courseMap = new Map<string, { course_code: string, course_title: string, file_count: number }>();
+                data.forEach(item => {
+                    const key = item.course_code;
+                    if (!courseMap.has(key)) {
+                        courseMap.set(key, { ...item, file_count: 0 });
+                    }
+                    courseMap.get(key)!.file_count++;
+                });
+                setCourses(Array.from(courseMap.values()));
+            }
+        } catch (err) {
+            console.error("Failed to fetch courses", err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function fetchQuestions(courseCode: string) {
+        if (!courseCode) return;
+        setLoading(true);
+        try {
             let query = supabase
                 .from('past_questions')
-                .select('*');
+                .select('*')
+                .eq('course_code', courseCode);
 
-            // Apply Filters
-            if (selectedLevel) query = query.eq('level', selectedLevel);
-            if (selectedDepartment) {
-                query = query.eq('department_id', selectedDepartment);
-            } else if (selectedSchool) {
-                const schoolDepts = (depsData || departments)
-                    .filter(d => d.school_id === selectedSchool)
-                    .map(d => d.id);
-                if (schoolDepts.length > 0) {
-                    query = query.in('department_id', schoolDepts);
-                }
-            }
             if (selectedSession) query = query.eq('session', selectedSession);
-
-            // Search Query
-            if (debouncedSearch) {
-                query = query.or(`course_code.ilike.%${debouncedSearch}%,course_title.ilike.%${debouncedSearch}%`);
-            }
-
-            // Apply Sorting
             if (sortBy === "newest") {
                 query = query.order('created_at', { ascending: false });
             } else {
                 query = query.order('download_count', { ascending: false });
             }
 
-            const { data: questionsData, error: questionsError } = await query;
-
-            if (questionsError) throw questionsError;
-            setQuestions(questionsData || []);
-        } catch (err: any) {
-            setError(err.message || 'Failed to fetch data');
+            const { data, error } = await query;
+            if (error) throw error;
+            setQuestions(data || []);
+        } catch (err) {
+            console.error("Failed to fetch questions", err);
+            setError("Failed to load questions.");
         } finally {
             setLoading(false);
         }
     }
 
+    async function fetchSearchResults(queryTerm: string) {
+        if (!queryTerm) {
+            setSearchResults([]);
+            return;
+        }
+        setLoading(true);
+        try {
+            const searchTerm = `%${queryTerm}%`;
+            const { data, error } = await supabase
+                .from('past_questions')
+                .select('*')
+                .or(`course_code.ilike.${searchTerm},course_title.ilike.${searchTerm}`)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setSearchResults(data || []);
+        } catch (err) {
+            console.error("Failed to search questions", err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // HANDLERS
+
+    const handleSelectSchool = (schoolId: string) => {
+        setSelectedSchool(schoolId);
+        // Reset children
+        setSelectedDepartment("");
+        setSelectedLevel("");
+        setSelectedCourse(null);
+
+        if (schoolId) {
+            fetchDepartments(schoolId);
+            setStep('departments');
+        } else {
+            setStep('initial');
+        }
+    };
+
+    const handleSelectDepartment = (deptId: string) => {
+        setSelectedDepartment(deptId);
+        // Reset children
+        setSelectedLevel("");
+        setSelectedCourse(null);
+
+        if (deptId) {
+            setStep('levels');
+        } else {
+            setStep('departments');
+        }
+    };
+
+    const handleSelectLevel = (lvl: string) => {
+        setSelectedLevel(lvl);
+        // Reset children
+        setSelectedCourse(null);
+
+        if (lvl) {
+            fetchCourses(selectedDepartment, lvl);
+            setStep('courses');
+        } else {
+            setStep('levels');
+        }
+    };
+
+    const handleSelectCourse = (course: { course_code: string, course_title: string }) => {
+        setSelectedCourse(course);
+        if (course) {
+            fetchQuestions(course.course_code);
+            setStep('questions');
+        } else {
+            setStep('courses');
+        }
+    };
+
+    // Navigation Back
+    const handleBack = () => {
+        if (step === 'questions') {
+            setStep('courses');
+            setSelectedCourse(null);
+        } else if (step === 'courses') {
+            setStep('levels');
+            setSelectedLevel("");
+        } else if (step === 'levels') {
+            setStep('departments');
+            setSelectedDepartment("");
+        } else if (step === 'departments') {
+            setStep('initial');
+            setSelectedSchool("");
+        }
+    };
+
+    // Existing Modal logic...
     async function fetchQuestionDetails(id: string) {
         try {
             setModalLoading(true);
@@ -186,7 +325,6 @@ function BrowseContent() {
         return (bytes / 1024 / 1024).toFixed(2) + ' MB';
     };
 
-    // Fetch user's saved questions
     async function fetchSavedQuestions() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -205,14 +343,12 @@ function BrowseContent() {
         }
     }
 
-    // Handle download with tracking
     const handleDownload = async (questionId: string, fileUrl: string) => {
         if (!fileUrl) return;
 
         setDownloadingId(questionId);
 
         try {
-            // Increment download count
             const { data: currentQuestion } = await supabase
                 .from('past_questions')
                 .select('download_count')
@@ -226,22 +362,17 @@ function BrowseContent() {
                     .eq('id', questionId);
             }
 
-            // Track in history if user is authenticated
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 await supabase
                     .from('download_history')
-                    .insert({
-                        user_id: user.id,
-                        question_id: questionId
-                    });
+                    .insert({ user_id: user.id, question_id: questionId });
             }
 
-            // Trigger download
             window.open(fileUrl, '_blank');
-
-            // Refresh questions to show updated count
-            fetchData();
+            if (step === 'questions' && selectedCourse) {
+                fetchQuestions(selectedCourse.course_code);
+            }
         } catch (error) {
             console.error('Download error:', error);
             alert('Failed to download. Please try again.');
@@ -250,7 +381,6 @@ function BrowseContent() {
         }
     };
 
-    // Handle save/unsave question
     const handleSaveToggle = async (questionId: string) => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -263,27 +393,14 @@ function BrowseContent() {
 
         try {
             if (isSaved) {
-                // Unsave
-                await supabase
-                    .from('saved_questions')
-                    .delete()
-                    .eq('user_id', user.id)
-                    .eq('question_id', questionId);
-
+                await supabase.from('saved_questions').delete().eq('user_id', user.id).eq('question_id', questionId);
                 setSavedQuestions(prev => {
                     const newSet = new Set(prev);
                     newSet.delete(questionId);
                     return newSet;
                 });
             } else {
-                // Save
-                await supabase
-                    .from('saved_questions')
-                    .insert({
-                        user_id: user.id,
-                        question_id: questionId
-                    });
-
+                await supabase.from('saved_questions').insert({ user_id: user.id, question_id: questionId });
                 setSavedQuestions(prev => new Set(prev).add(questionId));
             }
         } catch (error) {
@@ -294,12 +411,16 @@ function BrowseContent() {
         }
     };
 
+    const currentSchoolName = schools.find(s => s.id === selectedSchool)?.name || "Selected School";
+    const currentDeptName = departments.find(d => d.id === selectedDepartment)?.name || "Selected Department";
+    const currentCourse = selectedCourse;
+
     return (
         <div className="flex flex-col lg:flex-row min-h-screen bg-background text-foreground w-full">
-            {/* Mobile Filter Toggle Button */}
+            {/* Mobile Filter Toggle */}
             <button
                 onClick={() => setShowMobileFilters(true)}
-                className="lg:hidden fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-4 rounded-full shadow-2xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
+                className="lg:hidden fixed bottom-6 right-6 z-50 bg-primary text-primary-foreground p-4 rounded-full shadow-2xl hover:bg-primary/90 transition-all active:scale-95 flex items-center gap-2"
                 aria-label="Open filters"
             >
                 <Filter size={24} />
@@ -314,7 +435,7 @@ function BrowseContent() {
                 />
             )}
 
-            {/* Filter Sidebar */}
+            {/* Sidebar */}
             <aside className={cn(
                 "w-full sm:w-80 border-r border-border flex flex-col bg-card overflow-y-auto transition-transform duration-300 ease-in-out",
                 "fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto h-full lg:h-auto",
@@ -322,17 +443,12 @@ function BrowseContent() {
             )}>
                 <div className="p-6 lg:p-8 border-b border-border flex justify-between items-center sticky top-0 bg-card z-10">
                     <h2 className="text-lg lg:text-xl font-bold flex items-center gap-2">
-                        <Filter className="w-5 h-5 text-blue-500" />
+                        <Filter className="w-5 h-5 text-primary" />
                         Filter Results
                     </h2>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => {
-                                setSelectedSchool("");
-                                setSelectedDepartment("");
-                                setSelectedSession("");
-                                setSelectedLevel("");
-                            }}
+                            onClick={() => handleSelectSchool("")}
                             className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
                         >
                             Reset
@@ -340,7 +456,6 @@ function BrowseContent() {
                         <button
                             onClick={() => setShowMobileFilters(false)}
                             className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors"
-                            aria-label="Close filters"
                         >
                             <X size={20} />
                         </button>
@@ -348,17 +463,13 @@ function BrowseContent() {
                 </div>
 
                 <div className="p-6 lg:p-8 space-y-8 lg:space-y-10">
-                    {/* School Filter */}
                     <div className="space-y-4">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">School</label>
                         <div className="relative">
                             <select
                                 value={selectedSchool}
-                                onChange={(e) => {
-                                    setSelectedSchool(e.target.value);
-                                    setSelectedDepartment("");
-                                }}
-                                className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer text-foreground"
+                                onChange={(e) => handleSelectSchool(e.target.value)}
+                                className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer text-foreground"
                             >
                                 <option value="">All Schools</option>
                                 {schools.map(s => <option key={s.id} value={s.id} className="bg-background">{s.name}</option>)}
@@ -367,14 +478,14 @@ function BrowseContent() {
                         </div>
                     </div>
 
-                    {/* Department Filter */}
-                    <div className="space-y-4">
+                    <div className={cn("space-y-4 transition-opacity duration-300", !selectedSchool && "opacity-50 pointer-events-none")}>
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Department</label>
                         <div className="relative">
                             <select
                                 value={selectedDepartment}
-                                onChange={(e) => setSelectedDepartment(e.target.value)}
-                                className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer text-foreground"
+                                onChange={(e) => handleSelectDepartment(e.target.value)}
+                                disabled={!selectedSchool}
+                                className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer text-foreground disabled:opacity-50"
                             >
                                 <option value="">All Departments</option>
                                 {departments
@@ -385,18 +496,18 @@ function BrowseContent() {
                         </div>
                     </div>
 
-                    {/* Level Filter */}
-                    <div className="space-y-4">
+                    <div className={cn("space-y-4 transition-opacity duration-300", !selectedDepartment && "opacity-50 pointer-events-none")}>
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Level</label>
                         <div className="grid grid-cols-2 gap-2">
                             {filters.levels.map((level) => (
                                 <button
                                     key={level}
-                                    onClick={() => setSelectedLevel(level)}
+                                    onClick={() => handleSelectLevel(level)}
+                                    disabled={!selectedDepartment}
                                     className={cn(
                                         "py-2.5 rounded-xl text-xs font-bold border transition-all",
                                         selectedLevel === level
-                                            ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-900/20"
+                                            ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-black/10"
                                             : "bg-muted border-border text-muted-foreground hover:border-foreground/20"
                                     )}
                                 >
@@ -406,14 +517,13 @@ function BrowseContent() {
                         </div>
                     </div>
 
-                    {/* Session Year */}
                     <div className="space-y-4">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Session Year</label>
                         <div className="relative">
                             <select
                                 value={selectedSession}
                                 onChange={(e) => setSelectedSession(e.target.value)}
-                                className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer text-foreground"
+                                className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer text-foreground"
                             >
                                 <option value="">All Years</option>
                                 <option className="bg-background">2023/2024</option>
@@ -425,305 +535,163 @@ function BrowseContent() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={fetchData}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/20 active:scale-95"
-                    >
-                        Apply Filters
-                    </button>
+                    {/* Progress Indicator */}
+                    <div className="pt-6 border-t border-border">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                            <span>Step Progress</span>
+                            <span>{['initial', 'departments', 'levels', 'courses', 'questions'].indexOf(step) + 1} / 5</span>
+                        </div>
+                        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-primary transition-all duration-500"
+                                style={{ width: `${((['initial', 'departments', 'levels', 'courses', 'questions'].indexOf(step) + 1) / 5) * 100}%` }}
+                            />
+                        </div>
+                    </div>
                 </div>
             </aside>
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col bg-background w-full overflow-x-hidden">
-                {/* Header */}
-                <header className="min-h-[80px] border-b border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 sm:px-6 lg:px-10 py-4 sm:py-0 bg-background/50 backdrop-blur-xl gap-4 sm:gap-0">
+                <header className="min-h-[80px] border-b border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 sm:px-6 lg:px-10 py-4 sm:py-0 bg-background/50 backdrop-blur-xl gap-4 sm:gap-0 sticky top-0 z-30">
                     <div className="relative w-full sm:w-96 group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             placeholder="Search by course code, title..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-muted/50 border border-border rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium text-foreground"
+                            className="w-full bg-muted/50 border border-border rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium text-foreground"
                         />
                     </div>
                     <div className="flex items-center gap-4 lg:gap-6">
                         <span className="text-sm font-medium text-muted-foreground">{selectedLevel || "All Levels"}</span>
-                        <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 ring-2 ring-border" />
+                        <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-primary/10 ring-2 ring-border" />
                     </div>
                 </header>
 
-                {/* Results Info */}
-                <div className="p-4 sm:p-6 lg:p-10 pb-0 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Past Questions</h1>
-                        <p className="text-muted-foreground text-xs sm:text-sm">
-                            {loading ? 'Loading...' : `Showing ${questions.length} past questions found`}
-                        </p>
-                    </div>
-                    <div className="flex bg-muted border border-border rounded-2xl p-1">
-                        <button
-                            onClick={() => setSortBy("newest")}
-                            className={cn(
-                                "px-4 py-2 rounded-xl text-xs font-bold transition-all",
-                                sortBy === "newest" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            Newest First
-                        </button>
-                        <button
-                            onClick={() => setSortBy("popular")}
-                            className={cn(
-                                "px-4 py-2 rounded-xl text-xs font-bold transition-all",
-                                sortBy === "popular" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            Most Popular
-                        </button>
-                    </div>
-                </div>
-
-                {/* Results Grid */}
-                <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
-                    {loading ? (
-                        <div className="flex items-center justify-center h-64">
-                            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                        </div>
-                    ) : error ? (
-                        <div className="flex items-center justify-center h-64">
-                            <p className="text-red-500">{error}</p>
-                        </div>
+                <div className="flex-1 relative h-full">
+                    {debouncedSearch ? (
+                        <SearchResults
+                            results={searchResults}
+                            loading={loading}
+                            query={debouncedSearch}
+                            onSelectQuestion={(q) => { setSelectedQuestion(q); setIsModalOpen(true); }}
+                            onSaveToggle={handleSaveToggle}
+                            savedQuestions={savedQuestions}
+                            savingId={savingId}
+                        />
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                            {questions.map((q) => (
-                                <div key={q.id} className="bg-card border border-border rounded-[2rem] p-8 group hover:bg-muted transition-all relative">
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="flex gap-2">
-                                            <span className="px-3 py-1 bg-blue-500 text-[10px] font-bold rounded-lg text-white">
-                                                {q.course_code}
-                                            </span>
-                                            <span className="px-3 py-1 bg-muted border border-border text-[10px] font-bold rounded-lg text-muted-foreground uppercase">
-                                                {q.question_type}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={() => handleSaveToggle(q.id)}
-                                            disabled={savingId === q.id}
-                                            className={cn(
-                                                "transition-colors",
-                                                savedQuestions.has(q.id)
-                                                    ? "text-blue-500"
-                                                    : "text-muted-foreground hover:text-blue-500"
-                                            )}
-                                        >
-                                            <BookOpen size={18} fill={savedQuestions.has(q.id) ? "currentColor" : "none"} />
-                                        </button>
-                                    </div>
-
-                                    <h3 className="text-xl font-bold mb-6 group-hover:text-blue-500 transition-colors">{q.course_title}</h3>
-
-                                    <div className="space-y-3 mb-8">
-                                        <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Calendar size={14} className="text-blue-500" />
-                                            <span className="text-xs font-medium">{q.session} Session</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Clock size={14} className="text-blue-500" />
-                                            <span className="text-xs font-medium">{q.semester}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-6 border-t border-border flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <div className="p-1.5 bg-red-500/10 rounded text-red-500">
-                                                <Download size={12} />
-                                            </div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest leading-none">PDF • {formatFileSize(q.file_size)}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => openDetails(q.id)}
-                                            className="flex items-center gap-2 text-blue-500 text-xs font-bold hover:underline"
-                                        >
-                                            View Details
-                                            <Eye size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Pagination */}
-                    {!loading && !error && questions.length > 0 && (
-                        <div className="mt-12 flex justify-center items-center gap-2">
-                            {[1].map((page, i) => (
-                                <button
-                                    key={i}
-                                    className={cn(
-                                        "w-10 h-10 rounded-xl text-sm font-bold border transition-all",
-                                        page === 1
-                                            ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-900/20"
-                                            : "bg-card border-border text-muted-foreground hover:border-foreground/20"
-                                    )}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
+                        <>
+                            {step === 'initial' && <SelectSchoolState />}
+                            {step === 'departments' && (
+                                <DepartmentList
+                                    schoolName={currentSchoolName}
+                                    departments={departments}
+                                    onSelect={(d) => handleSelectDepartment(d.id)}
+                                    onBack={handleBack}
+                                    loading={loading}
+                                />
+                            )}
+                            {step === 'levels' && (
+                                <LevelList
+                                    schoolName={currentSchoolName}
+                                    departmentName={currentDeptName}
+                                    levels={filters.levels}
+                                    onSelect={handleSelectLevel}
+                                    onBack={handleBack}
+                                />
+                            )}
+                            {step === 'courses' && (
+                                <CourseList
+                                    schoolName={currentSchoolName}
+                                    departmentName={currentDeptName}
+                                    level={selectedLevel}
+                                    courses={courses}
+                                    onSelect={handleSelectCourse}
+                                    onBack={handleBack}
+                                    loading={loading}
+                                />
+                            )}
+                            {step === 'questions' && (
+                                <PastQuestionList
+                                    courseTitle={currentCourse?.course_title || "Unknown Course"}
+                                    courseCode={currentCourse?.course_code || ""}
+                                    schoolName={currentSchoolName}
+                                    departmentName={currentDeptName}
+                                    level={selectedLevel}
+                                    questions={questions}
+                                    loading={loading}
+                                    onBack={handleBack}
+                                    onSelectQuestion={(q) => { setSelectedQuestion(q); setIsModalOpen(true); }}
+                                    onSaveToggle={handleSaveToggle}
+                                    savedQuestions={savedQuestions}
+                                    savingId={savingId}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </main>
 
-            {/* Question Detail Modal */}
-            {isModalOpen && (
+            {/* Modal */}
+            {isModalOpen && selectedQuestion && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={closeDetails} />
-                    <div className="relative w-full max-w-6xl h-full bg-card border border-border rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
-                        {modalLoading ? (
-                            <div className="flex-1 flex items-center justify-center">
-                                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                    <div className={cn(
+                        "relative bg-card border border-border  shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300",
+                        isFullScreen ? "fixed inset-0 w-full h-full rounded-none z-[60]" : "w-full max-w-6xl h-full rounded-[2.5rem]"
+                    )}>
+                        <div className="p-8 border-b border-border flex justify-between items-start">
+                            <div className="flex gap-6">
+                                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary ring-1 ring-primary/20">
+                                    <FileText size={32} />
+                                </div>
+                                <div>
+                                    <div className="flex gap-2 mb-2">
+                                        <span className="px-3 py-1 bg-primary text-[10px] font-bold rounded-lg text-primary-foreground uppercase">{selectedQuestion.course_code}</span>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-foreground">{selectedQuestion.course_title}</h2>
+                                    <p className="text-muted-foreground text-sm font-medium">{selectedQuestion.session} • {selectedQuestion.semester}</p>
+                                </div>
                             </div>
-                        ) : selectedQuestion ? (
-                            <>
-                                {/* Modal Header */}
-                                <div className="p-8 border-b border-border flex justify-between items-start">
-                                    <div className="flex gap-6">
-                                        <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500 ring-1 ring-blue-500/20">
-                                            <FileText size={32} />
-                                        </div>
-                                        <div>
-                                            <div className="flex gap-2 mb-2">
-                                                <span className="px-3 py-1 bg-blue-500 text-[10px] font-bold rounded-lg text-white uppercase">
-                                                    {selectedQuestion.course_code}
-                                                </span>
-                                                <span className="px-3 py-1 bg-muted border border-border text-[10px] font-bold rounded-lg text-muted-foreground uppercase">
-                                                    {selectedQuestion.level}
-                                                </span>
-                                                <span className="px-3 py-1 bg-muted border border-border text-[10px] font-bold rounded-lg text-muted-foreground uppercase">
-                                                    {selectedQuestion.question_type}
-                                                </span>
-                                            </div>
-                                            <h2 className="text-2xl font-bold text-foreground">{selectedQuestion.course_title}</h2>
-                                            <p className="text-muted-foreground text-sm font-medium">
-                                                {selectedQuestion.session} Session • {selectedQuestion.semester}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => selectedQuestion && handleSaveToggle(selectedQuestion.id)}
-                                            disabled={!selectedQuestion || savingId === selectedQuestion?.id}
-                                            className={cn(
-                                                "p-3 bg-muted border border-border rounded-xl transition-all",
-                                                selectedQuestion && savedQuestions.has(selectedQuestion.id)
-                                                    ? "text-blue-500 border-blue-500"
-                                                    : "text-muted-foreground hover:text-foreground"
-                                            )}
-                                            title={selectedQuestion && savedQuestions.has(selectedQuestion.id) ? "Unsave" : "Save"}
-                                        >
-                                            <Save size={20} fill={selectedQuestion && savedQuestions.has(selectedQuestion.id) ? "currentColor" : "none"} />
-                                        </button>
-                                        <button className="p-3 bg-muted border border-border rounded-xl text-muted-foreground hover:text-foreground transition-all">
-                                            <Share2 size={20} />
-                                        </button>
-                                        <button onClick={closeDetails} className="p-3 bg-muted border border-border rounded-xl text-muted-foreground hover:text-red-500 transition-all">
-                                            <X size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Modal Content */}
-                                <div className="flex-1 flex overflow-hidden">
-                                    {/* PDF Preview Area */}
-                                    <div className="flex-1 bg-muted/30 p-8 overflow-hidden flex flex-col">
-                                        <div className="flex-1 bg-white rounded-3xl overflow-hidden shadow-inner border border-border relative">
-                                            {selectedQuestion.file_url ? (
-                                                <iframe
-                                                    src={`${selectedQuestion.file_url}#toolbar=0`}
-                                                    className="w-full h-full border-none"
-                                                    title="Question Preview"
-                                                />
-                                            ) : (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-10 text-center">
-                                                    <AlertCircle size={48} className="mb-4 opacity-20" />
-                                                    <p className="font-bold">Preview not available</p>
-                                                    <p className="text-xs">This question might only be available for download.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Right Sidebar Details */}
-                                    <div className="w-80 border-l border-border p-8 space-y-8 bg-card overflow-y-auto">
-                                        <div className="space-y-4">
-                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Actions</h4>
-                                            <button
-                                                onClick={() => selectedQuestion && handleDownload(selectedQuestion.id, selectedQuestion.file_url || '')}
-                                                disabled={!selectedQuestion?.file_url || downloadingId === selectedQuestion?.id}
-                                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-3"
-                                            >
-                                                {downloadingId === selectedQuestion?.id ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin" size={20} />
-                                                        Downloading...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Download size={20} />
-                                                        Download PDF
-                                                    </>
-                                                )}
-                                            </button>
-                                            <button className="w-full bg-muted border border-border hover:bg-muted/80 text-foreground py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-3">
-                                                <Maximize2 size={20} />
-                                                Open Fullscreen
-                                            </button>
-                                        </div>
-
-                                        <div className="space-y-6 pt-6 border-t border-border">
-                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Document Info</h4>
-                                            <div className="space-y-4">
-                                                <div className="flex justify-between items-center px-4 py-3 bg-muted/50 rounded-xl">
-                                                    <span className="text-xs text-muted-foreground">File Size</span>
-                                                    <span className="text-xs font-bold">{formatFileSize(selectedQuestion.file_size)}</span>
-                                                </div>
-                                                <div className="flex justify-between items-center px-4 py-3 bg-muted/50 rounded-xl">
-                                                    <span className="text-xs text-muted-foreground">Total Pages</span>
-                                                    <span className="text-xs font-bold">{selectedQuestion.pages} Pages</span>
-                                                </div>
-                                                <div className="flex justify-between items-center px-4 py-3 bg-muted/50 rounded-xl">
-                                                    <span className="text-xs text-muted-foreground">Downloads</span>
-                                                    <span className="text-xs font-bold">{selectedQuestion.download_count} times</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Exam Tip Card */}
-                                        <div className="p-6 bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-2xl">
-                                            <h5 className="text-sm font-bold mb-2 flex items-center gap-2">
-                                                <Info size={16} className="text-blue-500" />
-                                                Study Tip
-                                            </h5>
-                                            <p className="text-[11px] leading-relaxed text-muted-foreground">
-                                                Focus on years 2021-2023 for the most current syllabus alignment.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-                                <AlertCircle size={48} className="text-red-500" />
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold">Question Not Found</h3>
-                                    <p className="text-muted-foreground text-sm">This resource may have been removed.</p>
-                                </div>
-                                <button onClick={closeDetails} className="bg-muted border border-border px-6 py-2 rounded-xl text-xs font-bold">
-                                    Back to Library
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setIsFullScreen(!isFullScreen)}
+                                    className="p-3 bg-muted border border-border rounded-xl hover:bg-muted/80 transition-colors"
+                                    title={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
+                                >
+                                    <Maximize2 size={20} />
                                 </button>
+                                <button onClick={closeDetails} className="p-3 bg-muted border border-border rounded-xl hover:bg-muted/80 transition-colors"><X size={20} /></button>
                             </div>
-                        )}
+                        </div>
+                        <div className="flex-1 flex overflow-hidden">
+                            <div className="flex-1 bg-muted/30 p-8">
+                                <div className="bg-white rounded-3xl overflow-hidden shadow-inner border border-border h-full relative">
+                                    {selectedQuestion.file_url ? (
+                                        <iframe src={`${selectedQuestion.file_url}#toolbar=0`} className="w-full h-full border-none" />
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground"><p>N/A</p></div>
+                                    )}
+                                </div>
+                            </div>
+                            {!isFullScreen && (
+                                <div className="w-80 border-l border-border p-8 bg-card overflow-y-auto space-y-4">
+                                    <button
+                                        onClick={() => handleDownload(selectedQuestion.id, selectedQuestion.file_url || '')}
+                                        disabled={!selectedQuestion.file_url}
+                                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-2xl font-bold flex justify-center items-center gap-2"
+                                    >
+                                        {downloadingId === selectedQuestion.id ? <Loader2 className="animate-spin" /> : <Download />} Download PDF
+                                    </button>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between"><span>Size</span><span className="font-bold">{formatFileSize(selectedQuestion.file_size)}</span></div>
+                                        <div className="flex justify-between"><span>Pages</span><span className="font-bold">{selectedQuestion.pages}</span></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -733,11 +701,7 @@ function BrowseContent() {
 
 export default function BrowsePage() {
     return (
-        <Suspense fallback={
-            <div className="flex items-center justify-center h-screen bg-background">
-                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-            </div>
-        }>
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="w-10 h-10 text-primary animate-spin" /></div>}>
             <BrowseContent />
         </Suspense>
     );

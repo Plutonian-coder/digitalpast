@@ -30,13 +30,13 @@ A modern web platform for Yabatech students to access, browse, and download past
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/digitalpast.git
+   git clone https://github.com/Plutonian-coder/digitalpast.git
    cd digitalpast
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
+   npm install 
    ```
 
 3. **Set up environment variables**

@@ -256,44 +256,11 @@ export default function SettingsPage() {
                                 <button
                                     onClick={handleSave}
                                     disabled={saving}
-                                    className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                                    className="px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-bold transition-all shadow-xl shadow-black/10 active:scale-95 flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {saving ? <Loader2 size={18} className="animate-spin" /> : null}
                                     Save Changes
                                 </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Appearance Section */}
-                    <section className="space-y-6">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground ml-1">Appearance</h3>
-                        <div className="bg-card border border-border rounded-[2.5rem] p-8 md:p-10">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {[
-                                    { id: "light", label: "Light Mode", icon: Sun },
-                                    { id: "dark", label: "Dark Mode", icon: Moon },
-                                    { id: "system", label: "System", icon: Monitor },
-                                ].map((option) => (
-                                    <button
-                                        key={option.id}
-                                        onClick={() => setTheme(option.id as any)}
-                                        className={cn(
-                                            "p-6 rounded-[2rem] border transition-all text-center flex flex-col items-center gap-4 group",
-                                            theme === option.id
-                                                ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-900/20"
-                                                : "bg-muted/50 border-border text-muted-foreground hover:border-foreground/20 hover:text-foreground"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "p-3 rounded-2xl transition-all",
-                                            theme === option.id ? "bg-white/20" : "bg-white/5 group-hover:bg-white/10"
-                                        )}>
-                                            <option.icon size={24} />
-                                        </div>
-                                        <span className="text-xs font-bold uppercase tracking-widest leading-none">{option.label}</span>
-                                    </button>
-                                ))}
                             </div>
                         </div>
                     </section>
@@ -305,7 +272,7 @@ export default function SettingsPage() {
                             <div className="bg-card border border-border rounded-3xl p-6 space-y-4">
                                 <button className="w-full flex items-center justify-between p-4 hover:bg-muted rounded-2xl transition-all">
                                     <div className="flex items-center gap-4">
-                                        <Shield className="text-blue-500" size={20} />
+                                        <Shield className="text-primary" size={20} />
                                         <span className="text-sm font-bold text-foreground">Change Password</span>
                                     </div>
                                     <ChevronRight size={16} className="text-muted-foreground" />
@@ -325,10 +292,10 @@ export default function SettingsPage() {
                             <div className="bg-card border border-border rounded-3xl p-6 space-y-4">
                                 <div className="flex items-center justify-between p-4">
                                     <div className="flex items-center gap-4">
-                                        <Bell className="text-blue-500" size={20} />
+                                        <Bell className="text-primary" size={20} />
                                         <span className="text-sm font-bold text-foreground">New Resources</span>
                                     </div>
-                                    <div className="w-10 h-5 bg-blue-600 rounded-full flex items-center px-1 cursor-pointer">
+                                    <div className="w-10 h-5 bg-primary rounded-full flex items-center px-1 cursor-pointer">
                                         <div className="w-3 h-3 bg-white rounded-full ml-auto" />
                                     </div>
                                 </div>

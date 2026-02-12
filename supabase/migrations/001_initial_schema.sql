@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS past_questions (
   level TEXT NOT NULL CHECK (level IN ('ND 1', 'ND 2', 'HND 1', 'HND 2')),
   session TEXT NOT NULL,
   semester TEXT NOT NULL CHECK (semester IN ('1st Semester', '2nd Semester')),
-  question_type TEXT NOT NULL CHECK (question_type IN ('Theory', 'Practical', 'Assignment', 'Lab')),
+  question_type TEXT NOT NULL CHECK (question_type IN ('Theory', 'Practical', 'Assignment', 'Both Theory and Practical')),
   file_url TEXT,
   file_size BIGINT,
   pages INTEGER DEFAULT 1,

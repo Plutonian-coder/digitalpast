@@ -1,38 +1,39 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
-  --card: #0a0a0a;
-  --card-foreground: #ffffff;
-  --popover: #0a0a0a;
-  --popover-foreground: #ffffff;
-  --primary: #ffffff;
-  --primary-foreground: #000000;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #ffffff;
-  --muted: #1a1a1a;
-  --muted-foreground: #a1a1aa;
-  --accent: #1a1a1a;
-  --accent-foreground: #ffffff;
-  --destructive: #7f1d1d;
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #000000;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #000000;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #d4d4d8;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #000000;
   --radius: 0.5rem;
-  --color-bg: #101214;
-  --color-surface: #161A1D;
-  --color-muted-surface: #1D2125;
-  --color-border: #2C333A;
-  --color-text-secondary: #596773;
-  --color-text-primary: #C7D1DB;
-  --color-heading: #DEE4EA;
-  --spacing-6: 1.5rem;
-  --rounded-lg: 0.5rem;
+  
+  /* Legacy/Custom Variables override */
+  --color-bg: #ffffff;
+  --color-surface: #f9f9f9;
+  --color-muted-surface: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-text-secondary: #52525b;
+  --color-text-primary: #000000;
+  --color-heading: #000000;
+  --color-bg-2: #000000;
+  --color-text-primary-rgb: 0, 0, 0;
+
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-  --color-text-primary-rgb: 199, 209, 219;
-  --color-bg-2: #C7D1DB;
 }
 
 .dark {
@@ -55,6 +56,7 @@
   --border: #27272a;
   --input: #27272a;
   --ring: #d4d4d8;
+  
   --color-bg: #101214;
   --color-surface: #161A1D;
   --color-muted-surface: #1D2125;
@@ -66,35 +68,37 @@
   --color-text-primary-rgb: 199, 209, 219;
 }
 
+/* Duplicated .light block removed as :root covers it, keeping .light class for explicit toggle support */
 .light {
   --background: #ffffff;
   --foreground: #000000;
-  --card: #f9f9f9;
+  --card: #ffffff;
   --card-foreground: #000000;
   --popover: #ffffff;
   --popover-foreground: #000000;
-  --primary: #2563eb;
+  --primary: #000000;
   --primary-foreground: #ffffff;
   --secondary: #f4f4f5;
   --secondary-foreground: #000000;
   --muted: #f4f4f5;
-  --muted-foreground: #52525b;
+  --muted-foreground: #71717a;
   --accent: #f4f4f5;
   --accent-foreground: #000000;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #e4e4e7;
   --input: #e4e4e7;
-  --ring: #3b82f6;
+  --ring: #000000;
+  
   --color-bg: #ffffff;
   --color-surface: #f9f9f9;
   --color-muted-surface: #f4f4f5;
   --color-border: #e4e4e7;
   --color-text-secondary: #52525b;
-  --color-text-primary: #2563eb;
+  --color-text-primary: #000000;
   --color-heading: #000000;
-  --color-bg-2: #2563eb;
-  --color-text-primary-rgb: 37, 99, 235;
+  --color-bg-2: #000000;
+  --color-text-primary-rgb: 0, 0, 0;
 }
 
 @theme inline {

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>University Past Question Portal - Level Selection</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#0066FF", // Bright blue from the 'Newest First' button and 'Apply Filters'
+                        "primary-hover": "#0052cc",
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#111827",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1F2937",
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#374151",
+                        "text-light": "#111827",
+                        "text-dark": "#F9FAFB",
+                        "text-secondary-light": "#6B7280",
+                        "text-secondary-dark": "#9CA3AF",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        xl: "1rem",
+                        "2xl": "1.5rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                        'glow': '0 0 15px rgba(0, 102, 255, 0.15)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }.custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #E5E7EB;
+            border-radius: 20px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-80 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col h-full flex-shrink-0 z-20">
+<div class="p-6 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-icons-outlined text-primary text-2xl">filter_list</span>
+<h2 class="font-bold text-lg tracking-tight">Selection</h2>
+</div>
+<button class="text-xs text-text-secondary-light dark:text-text-secondary-dark hover:text-primary transition-colors font-medium">Reset</button>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+<div class="relative pl-4 border-l-2 border-border-light dark:border-border-dark space-y-6">
+<div class="relative">
+<div class="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-white dark:ring-surface-dark"></div>
+<p class="text-xs uppercase font-semibold text-text-secondary-light dark:text-text-secondary-dark mb-1">Step 1</p>
+<h3 class="text-sm font-medium">School of Technology</h3>
+</div>
+<div class="relative">
+<div class="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-white dark:ring-surface-dark"></div>
+<p class="text-xs uppercase font-semibold text-text-secondary-light dark:text-text-secondary-dark mb-1">Step 2</p>
+<h3 class="text-sm font-medium">Computer Science</h3>
+</div>
+<div class="relative">
+<div class="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-primary/20 dark:ring-primary/30 animate-pulse"></div>
+<p class="text-xs uppercase font-semibold text-primary mb-1">Step 3</p>
+<h3 class="text-sm font-bold text-text-light dark:text-text-dark">Select Level</h3>
+</div>
+</div>
+<hr class="border-border-light dark:border-border-dark"/>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider mb-2 block">Selected School</label>
+<div class="flex items-center justify-between bg-background-light dark:bg-background-dark p-3 rounded-lg border border-border-light dark:border-border-dark">
+<span class="text-sm font-medium">Lagos State Polytechnic</span>
+<span class="material-icons-outlined text-green-500 text-sm">check_circle</span>
+</div>
+</div>
+<div>
+<label class="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider mb-2 block">Selected Department</label>
+<div class="flex items-center justify-between bg-background-light dark:bg-background-dark p-3 rounded-lg border border-border-light dark:border-border-dark">
+<span class="text-sm font-medium">Computer Science</span>
+<span class="material-icons-outlined text-green-500 text-sm">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-border-light dark:border-border-dark">
+<button class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-secondary-light dark:text-text-secondary-dark hover:bg-background-light dark:hover:bg-background-dark font-medium py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-icons-outlined text-sm">arrow_back</span>
+                    Back to Departments
+                </button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full relative overflow-hidden">
+<header class="h-20 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-8 flex-shrink-0 z-10">
+<div class="w-full max-w-lg relative">
+<span class="material-icons-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow dark:text-white placeholder-gray-400" placeholder="Search by course code, title..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark cursor-pointer hover:text-primary transition-colors">
+<span>All Levels</span>
+</div>
+<div class="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 shadow-md cursor-pointer hover:shadow-lg transition-shadow"></div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark">
+<div class="max-w-7xl mx-auto space-y-8">
+<div class="space-y-4">
+<nav class="flex text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">
+<ol class="flex items-center space-x-2">
+<li><a class="hover:text-primary transition-colors" href="#">School</a></li>
+<li><span class="material-icons-outlined text-xs mx-1">chevron_right</span></li>
+<li><a class="hover:text-primary transition-colors" href="#">Department</a></li>
+<li><span class="material-icons-outlined text-xs mx-1">chevron_right</span></li>
+<li class="text-text-light dark:text-text-dark font-semibold">Levels</li>
+</ol>
+</nav>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-bold text-text-light dark:text-text-dark tracking-tight">Select Level</h1>
+<p class="text-text-secondary-light dark:text-text-secondary-dark mt-2">
+                                    Choose a level within <span class="font-semibold text-primary">Computer Science</span> to view past questions.
+                                </p>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-1 flex">
+<button class="p-1.5 rounded bg-primary/10 text-primary">
+<span class="material-icons-outlined text-xl">grid_view</span>
+</button>
+<button class="p-1.5 rounded text-text-secondary-light dark:text-text-secondary-dark hover:text-text-light dark:hover:text-text-dark">
+<span class="material-icons-outlined text-xl">list</span>
+</button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<a class="group relative bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-6 shadow-soft hover:shadow-glow hover:border-primary dark:hover:border-primary transition-all duration-300 flex flex-col justify-between h-48" href="#">
+<div class="flex justify-between items-start">
+<div class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-xs px-2.5 py-1 rounded uppercase tracking-wide">
+                                    Diploma
+                                </div>
+<span class="material-icons-outlined text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">ND 1</h3>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">National Diploma Year 1</p>
+</div>
+<div class="w-full bg-border-light dark:bg-border-dark h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-3/4 rounded-full"></div>
+</div>
+<div class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2 flex justify-between">
+<span>12 Courses available</span>
+</div>
+</a>
+<a class="group relative bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-6 shadow-soft hover:shadow-glow hover:border-primary dark:hover:border-primary transition-all duration-300 flex flex-col justify-between h-48" href="#">
+<div class="flex justify-between items-start">
+<div class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-xs px-2.5 py-1 rounded uppercase tracking-wide">
+                                    Diploma
+                                </div>
+<span class="material-icons-outlined text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">ND 2</h3>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">National Diploma Year 2</p>
+</div>
+<div class="w-full bg-border-light dark:bg-border-dark h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-green-500 h-full w-full rounded-full"></div>
+</div>
+<div class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2 flex justify-between">
+<span>18 Courses available</span>
+</div>
+</a>
+<a class="group relative bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-6 shadow-soft hover:shadow-glow hover:border-primary dark:hover:border-primary transition-all duration-300 flex flex-col justify-between h-48" href="#">
+<div class="flex justify-between items-start">
+<div class="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-bold text-xs px-2.5 py-1 rounded uppercase tracking-wide">
+                                    Higher Diploma
+                                </div>
+<span class="material-icons-outlined text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">HND 1</h3>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Higher National Diploma Year 1</p>
+</div>
+<div class="w-full bg-border-light dark:bg-border-dark h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/2 rounded-full"></div>
+</div>
+<div class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2 flex justify-between">
+<span>8 Courses available</span>
+</div>
+</a>
+<a class="group relative bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-6 shadow-soft hover:shadow-glow hover:border-primary dark:hover:border-primary transition-all duration-300 flex flex-col justify-between h-48" href="#">
+<div class="flex justify-between items-start">
+<div class="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-bold text-xs px-2.5 py-1 rounded uppercase tracking-wide">
+                                    Higher Diploma
+                                </div>
+<span class="material-icons-outlined text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">HND 2</h3>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Higher National Diploma Year 2</p>
+</div>
+<div class="w-full bg-border-light dark:bg-border-dark h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-2/3 rounded-full"></div>
+</div>
+<div class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2 flex justify-between">
+<span>10 Courses available</span>
+</div>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+<div class="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-xl p-5 flex items-start gap-4">
+<div class="p-2 bg-blue-100 dark:bg-blue-800/50 rounded-lg text-blue-600 dark:text-blue-400">
+<span class="material-icons-outlined">library_books</span>
+</div>
+<div>
+<h4 class="font-semibold text-text-light dark:text-text-dark">Rich Archive</h4>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">Access over 500+ past questions specifically for Computer Science.</p>
+</div>
+</div>
+<div class="bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800/30 rounded-xl p-5 flex items-start gap-4">
+<div class="p-2 bg-green-100 dark:bg-green-800/50 rounded-lg text-green-600 dark:text-green-400">
+<span class="material-icons-outlined">verified</span>
+</div>
+<div>
+<h4 class="font-semibold text-text-light dark:text-text-dark">Verified Answers</h4>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">Many questions include verified solutions from top students.</p>
+</div>
+</div>
+<div class="bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-5 flex items-start gap-4">
+<div class="p-2 bg-purple-100 dark:bg-purple-800/50 rounded-lg text-purple-600 dark:text-purple-400">
+<span class="material-icons-outlined">cloud_download</span>
+</div>
+<div>
+<h4 class="font-semibold text-text-light dark:text-text-dark">Offline Access</h4>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">Download PDFs to study anywhere, anytime without internet.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>
