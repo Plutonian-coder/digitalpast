@@ -82,13 +82,13 @@ export function SearchResults({
                                 }}
                                 disabled={savingId === q.id}
                                 className={cn(
-                                    "transition-colors",
+                                    "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border",
                                     savedQuestions.has(q.id)
-                                        ? "text-primary"
-                                        : "text-muted-foreground hover:text-primary"
+                                        ? "bg-primary/10 border-primary/20 text-primary"
+                                        : "bg-muted border-border text-muted-foreground hover:text-primary hover:border-primary/20"
                                 )}
                             >
-                                <Bookmark size={18} fill={savedQuestions.has(q.id) ? "currentColor" : "none"} />
+                                {savingId === q.id ? "..." : savedQuestions.has(q.id) ? "Saved" : "Save"}
                             </button>
                         </div>
 
