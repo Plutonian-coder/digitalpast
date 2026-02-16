@@ -8,8 +8,8 @@
 
 INSERT INTO schools (name, slug, description) VALUES
 ('Engineering', 'engineering', 'Agricultural & Bio-Environmental, Chemical, Civil, Computer, etc.'),
-('School of Technology', 'technology', 'Agricultural Technology, Food Technology, Hospitality Management, etc.'),
-('School of Applied Science', 'applied-science', 'Science Laboratory Technology (SLT), Statistics, Mathematics, Computer Science'),
+('School of Technology', 'technology', 'Computer Science, Agricultural Technology, Food Technology, Hospitality Management, etc.'),
+('School of Applied Science', 'applied-science', 'Science Laboratory Technology (SLT), Statistics, Mathematics'),
 ('Environmental Studies', 'environmental', 'Architectural Technology, Building Technology, Estate Management, etc.'),
 ('Management & Business', 'management-business', 'Accountancy, Banking & Finance, Business Administration, etc.'),
 ('Arts & General Studies', 'arts-general', 'Art and Industrial Design, Fashion Design, Mass Communication')
@@ -54,7 +54,8 @@ BEGIN
     (school_id, 'Leisure & Tourism', 'LTM'),
     (school_id, 'Polymer Technology', 'PTY'),
     (school_id, 'Textile Technology', 'TXT'),
-    (school_id, 'Printing Technology', 'PRT')
+    (school_id, 'Printing Technology', 'PRT'),
+    (school_id, 'Computer Science', 'CSC')
     ON CONFLICT DO NOTHING;
   END IF;
 
@@ -64,8 +65,7 @@ BEGIN
     INSERT INTO departments (school_id, name, code) VALUES
     (school_id, 'Science Laboratory Technology (SLT)', 'SLT'),
     (school_id, 'Statistics', 'STA'),
-    (school_id, 'Mathematics', 'MTH'),
-    (school_id, 'Computer Science', 'CSC')
+    (school_id, 'Mathematics', 'MTH')
     ON CONFLICT DO NOTHING;
   END IF;
 

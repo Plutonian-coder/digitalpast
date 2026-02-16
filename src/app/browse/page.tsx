@@ -526,6 +526,9 @@ function BrowseContent() {
                                 className="w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer text-foreground"
                             >
                                 <option value="">All Years</option>
+                                <option className="bg-background">2026/2027</option>
+                                <option className="bg-background">2025/2026</option>
+                                <option className="bg-background">2024/2025</option>
                                 <option className="bg-background">2023/2024</option>
                                 <option className="bg-background">2022/2023</option>
                                 <option className="bg-background">2021/2022</option>

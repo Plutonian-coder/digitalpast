@@ -107,16 +107,16 @@ export function Sidebar() {
             {/* Bottom Section */}
             <div className="mt-auto pt-6 space-y-4">
                 {!isCollapsed && (
-                    <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-4 relative overflow-hidden group">
+                    <Link href="/pricing" className="block bg-blue-600/10 border border-blue-500/20 rounded-2xl p-4 relative overflow-hidden group hover:bg-blue-600/15 transition-all">
                         <div className="absolute top-0 right-0 p-2 text-blue-500/20 group-hover:text-blue-500/40 transition-colors">
                             <Sparkles className="w-8 h-8 rotate-12" />
                         </div>
                         <p className="text-blue-500 text-[10px] font-bold uppercase tracking-widest mb-1">Upgrade Plan</p>
                         <p className="text-foreground text-xs font-medium mb-3">Get unlimited access</p>
-                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-[10px] font-bold transition-all">
+                        <div className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-[10px] font-bold transition-all text-center">
                             Upgrade
-                        </button>
-                    </div>
+                        </div>
+                    </Link>
                 )}
 
                 {/* New Theme Toggle Position */}
